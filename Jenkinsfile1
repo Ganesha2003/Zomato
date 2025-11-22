@@ -4,20 +4,21 @@ pipeline {
         jdk 'JAVA_HOME'
         nodejs 'nodejs25'
     }
-    
+
     stages {
-        
+
         stage ("Git Checkout") {
             steps {
-                git 'https://github.com/Ganesha2003/Zomato.git'          
+                git 'https://github.com/Ganesha2003/Zomato.git'
             }
         }
-        
+
         stage ("Build Docker Image") {
             steps {
-                sh "docker build -t rmganesha/zomatoapp:1.0 ."               
+                sh "docker build -t rmganesha/zomatoapp:1.0 ."
             }
         }
+
         stage ("Tag & Push to DockerHub") {
             steps {
                 script {
@@ -28,18 +29,29 @@ pipeline {
                 }
             }
         }
-         stage('Config & Deployment') {
+
+        // --- FIX APPLIED HERE ---
+        stage('Config & Deployment') {
             steps {
-                
-                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                // 1. Bind AWS IAM credentials and the SSH key file (aws-keypair)
+                withCredentials([
+                    aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
+                    file(credentialsId: 'aws-keypair', variable: 'KEY_FILE_PATH') // Inject the Secret File
+                ]) {
                     dir('terraformfiles') {
-                    sh 'sudo chmod 600 bookmyshow.pem'
-                    sh 'terraform init'
-                    sh 'terraform validate'
-                    sh 'terraform apply --auto-approve'
-}
-    }
-}
-} 
+                        // 2. Copy the injected key file to the expected name (bookmyshow.pem)
+                        sh 'cp $KEY_FILE_PATH bookmyshow.pem' 
+
+                        // 3. Set the necessary restrictive file permissions (600)
+                        sh 'chmod 600 bookmyshow.pem'
+                        
+                        // 4. Execute Terraform commands
+                        sh 'terraform init'
+                        sh 'terraform validate'
+                        sh 'terraform apply --auto-approve'
+                    }
+                }
+            }
+        }
     }
 }
