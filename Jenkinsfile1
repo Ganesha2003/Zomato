@@ -30,25 +30,17 @@ pipeline {
         }
          stage('Config & Deployment') {
             steps {
-                withCredentials([
-                    aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
-                    file(credentialsId: 'aws-keypair', variable: 'KEY_FILE_PATH')
-                ]) {
+                
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     dir('terraformfiles') {
-                        // 1. MUST BE FIRST: Copy the key from the temporary location to the working directory.
-                        // Use this specific concatenation to reliably bypass masking/interpolation errors.
-                        sh 'cp ' + "${KEY_FILE_PATH}" + ' bookmyshow.pem' 
+                    sh 'sudo chmod 600 bookmyshow.pem'
+                    sh 'terraform init'
+                    sh 'terraform validate'
+                    sh 'terraform apply --auto-approve'
+}
+    }
+}
+} 
 
-                        // 2. MUST BE SECOND: Set permissions on the file that now exists.
-                        // Using 'sudo' is unnecessary and often problematic in Jenkins.
-                        sh 'chmod 400 bookmyshow.pem' 
-                        
-                        sh 'terraform init'
-                        sh 'terraform validate'
-                        sh 'terraform apply --auto-approve'
-                    }
-                }
-            }
-        }
     }
 }
