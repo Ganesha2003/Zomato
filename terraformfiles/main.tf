@@ -7,7 +7,7 @@ resource "aws_instance" "test-server" {
     connection {
         type        = "ssh"
         user        = "ec2-user"
-        private_key = file("./'bookmyshow .pem'")
+        private_key = file("./bookmyshow .pem")
         host        = self.public_ip
     }
 
@@ -28,6 +28,6 @@ resource "aws_instance" "test-server" {
     # CRITICAL FIX: Explicitly specify the inventory and the private key for Ansible
     # --------------------------------------------------------------------------
     provisioner "local-exec" {
-        command = "ansible-playbook -i inventory --private-key 'bookmyshow .pem' /var/lib/jenkins/workspace/zomatoapp/terraformfiles/ansiblebook.yml"
+        command = "ansible-playbook -i inventory --private-key bookmyshow .pem /var/lib/jenkins/workspace/zomatoapp/terraformfiles/ansiblebook.yml"
     }
 }
