@@ -4,21 +4,20 @@ pipeline {
         jdk 'JAVA_HOME'
         nodejs 'nodejs25'
     }
-
+    
     stages {
-
+        
         stage ("Git Checkout") {
             steps {
-                git 'https://github.com/Ganesha2003/Zomato.git'
+                git 'https://github.com/Ganesha2003/Zomato.git'          
             }
         }
-
+        
         stage ("Build Docker Image") {
             steps {
-                sh "docker build -t rmganesha/zomatoapp:1.0 ."
+                sh "docker build -t rmganesha/zomatoapp:1.0 ."               
             }
         }
-
         stage ("Tag & Push to DockerHub") {
             steps {
                 script {
@@ -29,27 +28,18 @@ pipeline {
                 }
             }
         }
-
-stage('Config & Deployment') {
+         stage('Config & Deployment') {
             steps {
-                withCredentials([
-                    aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
-                    file(credentialsId: 'aws-keypair', variable: 'KEY_FILE_PATH')
-                ]) {
+                
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     dir('terraformfiles') {
-                        // FIX: Use single quotes and explicitly interpolate the variable 
-                        // using the Groovy syntax. This is the most reliable way to bypass
-                        // variable masking issues in shell commands.
-                        sh 'cp ' + "${KEY_FILE_PATH}" + ' bookmyshow.pem' 
-
-                        sh 'chmod 600 bookmyshow.pem'
-                        
-                        sh 'terraform init'
-                        sh 'terraform validate'
-                        sh 'terraform apply --auto-approve'
-                    }
-                }
-            }
-        }    
+                    sh 'sudo chmod 600 bookmyshow.pem'
+                    sh 'terraform init'
+                    sh 'terraform validate'
+                    sh 'terraform apply --auto-approve'
 }
+    }
+}
+} 
+    }
 }
