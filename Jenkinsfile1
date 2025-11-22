@@ -30,22 +30,22 @@ pipeline {
             }
         }
 
-        // --- FIX APPLIED HERE ---
         stage('Config & Deployment') {
             steps {
-                // 1. Bind AWS IAM credentials and the SSH key file (aws-keypair)
+                // This block securely injects the AWS keys and the SSH key file.
                 withCredentials([
                     aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
                     file(credentialsId: 'aws-keypair', variable: 'KEY_FILE_PATH') // Inject the Secret File
                 ]) {
                     dir('terraformfiles') {
-                        // 2. Copy the injected key file to the expected name (bookmyshow.pem)
-                        sh 'cp $KEY_FILE_PATH terraformfiles/bookmyshow.pem'
+                        // 1. FIX: Use double quotes to resolve the variable interpolation/masking issue.
+                        // This copies the key to the 'bookmyshow.pem' name, required by your main.tf.
+                        sh "cp $KEY_FILE_PATH bookmyshow.pem" 
 
-                        // 3. Set the necessary restrictive file permissions (600)
+                        // 2. Set the necessary restrictive file permissions (600) for SSH to accept the key.
                         sh 'chmod 600 bookmyshow.pem'
                         
-                        // 4. Execute Terraform commands
+                        // 3. Execute Terraform steps. Now, the key is present and accessible.
                         sh 'terraform init'
                         sh 'terraform validate'
                         sh 'terraform apply --auto-approve'
