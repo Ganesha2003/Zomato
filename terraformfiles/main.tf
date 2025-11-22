@@ -10,7 +10,7 @@ variable "pem_file" {
 resource "aws_instance" "web" {
   ami           = "ami-0d176f79571d18a8f" 
   instance_type = "t3.small"              
-  key_name      = "bookmyshow .pem"       
+  key_name      = "bookmyshow.pem"       
 
   connection {
     type        = "ssh"
