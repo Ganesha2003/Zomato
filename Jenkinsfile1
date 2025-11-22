@@ -28,18 +28,21 @@ pipeline {
                 }
             }
         }
-         stage('Config & Deployment') {
+        stage('Terraform Apply') {
             steps {
-                
-                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    dir('terraformfiles') {
-                    sh 'sudo chmod 400 bookmyshow .pem'
-                    sh 'terraform init'
-                    sh 'terraform validate'
-                    sh 'terraform apply --auto-approve'
-}
-    }
-}
-} 
+                // Inject PEM file securely from Jenkins credentials
+                withCredentials([file(credentialsId: 'bookmyshow-pem', variable: 'PEMFILE')]) {
+                    sh '''
+                        # Secure the PEM file
+                        chmod 600 $PEMFILE
+
+                        # Initialize and apply Terraform, passing PEM file path
+                        cd terraformfiles
+                        terraform init
+                        terraform apply -auto-approve -var pem_file=$PEMFILE
+                    '''
+                }
+            }
+        }
     }
 }
