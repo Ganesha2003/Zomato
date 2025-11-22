@@ -1,15 +1,21 @@
-provider "aws" {
-  region = "ap-south-1"   
-}
+resource "aws_instance" "test-server" {
+  ami                    = "ami-0d176f79571d18a8f"          
+  instance_type          = "t3.small"
+  vpc_security_group_ids = ["sg-01339d701b90ce090"]         
 
-resource "aws_instance" "web" {
-  ami           = "ami-0d176f79571d18a8f" 
-  instance_type = "t3.small"              
+  # Removed key_name and SSH connection since no key pair is used
 
-  # No key_name, no SSH connection
-  # Use user_data for bootstrapping instead
-  user_data = <<-EOF
-    #!/bin/bash
-    echo "Hello from Terraform without SSH" > /home/ec2-user/startup.log
-  EOF
+  tags = {
+    Name = "test-server"
+  }
+
+  # Save public IP to inventory file
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.test-server.public_ip} > inventory"
+  }
+
+  # Run Ansible playbook locally (not over SSH)
+  provisioner "local-exec" {
+    command = "ansible-playbook /var/lib/jenkins/workspace/zomatoapp/terraformfiles/ansiblebook.yml"
+  }
 }
