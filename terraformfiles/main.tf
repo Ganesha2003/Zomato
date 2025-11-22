@@ -25,7 +25,6 @@ resource "aws_instance" "test-server" {
     }
 
     provisioner "local-exec" {
-        // FIX 2: Added -i inventory and --private-key bookmyshow.pem for Ansible authentication
-        command = "ansible-playbook -i inventory --private-key bookmyshow.pem /var/lib/jenkins/workspace/zomatoapp/terraformfiles/ansiblebook.yml"
-    }
-}
+     command = "ansible-playbook /var/lib/jenkins/workspace/zomatoapp/terraformfiles/ansiblebook.yml"
+     }
+  }
