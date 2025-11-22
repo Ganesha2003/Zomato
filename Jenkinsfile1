@@ -40,7 +40,7 @@ pipeline {
                 ]) {
                     dir('terraformfiles') {
                         // 2. Copy the injected key file to the expected name (bookmyshow.pem)
-                        sh 'cp $KEY_FILE_PATH bookmyshow.pem' 
+                        sh "cp $KEY_FILE_PATH bookmyshow.pem" 
 
                         // 3. Set the necessary restrictive file permissions (600)
                         sh 'chmod 600 bookmyshow.pem'
